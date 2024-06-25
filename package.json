@@ -1,5 +1,5 @@
 {
-  "name": "geolocation",
+  "name": "youtube_downloader",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,9 +12,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "firebase-admin": "^12.0.0",
-    "geofire": "^6.0.0",
-    "youtube-toolkit": "^1.0.5",
     "ytdl-core": "^4.11.5"
   }
 }
