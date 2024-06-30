@@ -1,7 +1,7 @@
 const ytdl = require("ytdl-core");
 const cors = require("cors");
 const express = require("express");
-
+const fs = require("fs");
 const app = express();
 app.use(cors("*"));
 const port = 3000;
@@ -83,7 +83,6 @@ app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
 
-
 //OG
 app.get("/downloads", async (req, res) => {
   try {
@@ -105,12 +104,10 @@ app.get("/downloads", async (req, res) => {
       ytdl(URL, {
         filter: downloadFormat === "video-only" ? "videoonly" : "audioandvideo",
         quality: quality === "high" ? "highestvideo" : "lowestvideo",
-      }).pipe(res);
+      }).pipe(fs.createWriteStream(`"${title.substring(0, 25)}.mp4"`));
+      res.end();
     }
   } catch (e) {
     console.log(e);
   }
 });
-
-
-// ytdl.sujitchanda.in	/home/u675183114/domains/sujitchanda.in/public_html/ytdl
