@@ -1,7 +1,7 @@
 const ytdl = require("ytdl-core");
 const cors = require("cors");
 const express = require("express");
-const fs = require("fs");
+
 const app = express();
 app.use(cors("*"));
 const port = 3000;
@@ -87,27 +87,60 @@ app.listen(3000, () => {
 app.get("/downloads", async (req, res) => {
   try {
     const { URL, downloadFormat, quality, title } = req.query;
-    if (downloadFormat === "audio-only") {
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=${title.substring(0, 40)}.mp3`
-      );
-      ytdl(URL, {
-        filter: (format) => format.container === "m4a" && !format.encoding,
-        quality: quality === "high" ? "highest" : "lowest",
-      }).pipe(res);
-    } else {
-      res.header(
-        "Content-Disposition",
-        `attachment; filename="${title.substring(0, 25)}.mp4"`
-      );
-      ytdl(URL, {
-        filter: downloadFormat === "video-only" ? "videoonly" : "audioandvideo",
-        quality: quality === "high" ? "highestvideo" : "lowestvideo",
-      }).pipe(fs.createWriteStream(`"${title.substring(0, 25)}.mp4"`));
-      res.end();
-    }
+    const sanitizedTitle = title.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 25);
+    const ytdlOptions = {
+      filter:
+        downloadFormat === "audio-only"
+          ? (format) => format.container === "m4a" && !format.encoding
+          : downloadFormat === "video-only"
+          ? "videoonly"
+          : "audioandvideo",
+      quality: quality === "high" ? "highest" : "lowest",
+    };
+    const fileExtension = downloadFormat === "audio-only" ? "mp3" : "mp4";
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${sanitizedTitle}.${fileExtension}"`
+    );
+    ytdl(URL, ytdlOptions).pipe(res);
+
+    // if (downloadFormat === "audio-only") {
+    //   res.setHeader(
+    //     "Content-Disposition",
+    //     `attachment; filename="${sanitizedTitle}.mp3"`
+    //   );
+    //   res.setHeader("Content-Length", contentLength);
+    //   ytdl(URL, ytdlOptions).pipe(res);
+    // } else {
+    //   res.setHeader(
+    //     "Content-Disposition",
+    //     `attachment; filename="${sanitizedTitle}.mp4"`
+    //   );
+    //   res.setHeader("Content-Length", contentLength);
+    //   ytdl(URL, ytdlOptions).pipe(res);
+    // }
+    //================================================================
+    // if (downloadFormat === "audio-only") {
+    //   res.setHeader(
+    //     "Content-Disposition",
+    //     `attachment; filename=${title.substring(0, 40)}.mp3`
+    //   );
+    //   ytdl(URL, {
+    //     filter: (format) => format.container === "m4a" && !format.encoding,
+    //     quality: quality === "high" ? "highest" : "lowest",
+    //   }).pipe(res);
+    // } else {
+    //   res.header(
+    //     "Content-Disposition",
+    //     `attachment; filename="${title.substring(0, 25)}.mp4"`
+    //   );
+    //   ytdl(URL, {
+    //     filter: downloadFormat === "video-only" ? "videoonly" : "audioandvideo",
+    //     quality: quality === "high" ? "highestvideo" : "lowestvideo",
+    //   }).pipe(res);
+    // }
   } catch (e) {
-    console.log(e);
+    console.error(e);
+    res.status(500).send("An error occurred during download.");
   }
 });
